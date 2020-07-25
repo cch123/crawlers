@@ -66,7 +66,11 @@ func getArticleByURL(url string) article {
 
 				paragraphs = append(paragraphs, imageContent)
 			} else {
-				paragraphs = append(paragraphs, internal.Text)
+				// convert links to markdown format
+				internal.ForEach("a", func(_ int, e *colly.HTMLElement) {
+					e.DOM.SetText(fmt.Sprintf("[%v](https://www.economist.com/%v)", e.Text, e.Attr("href")))
+				})
+				paragraphs = append(paragraphs, internal.DOM.Text())
 			}
 
 		})

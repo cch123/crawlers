@@ -7,14 +7,20 @@ import (
 	"os"
 )
 
-func downloadImagesToDir(imageDir string, imageURLs ...string) {
+func downloadImagesToDir(imageFileName, imageDir string, imageURLs ...string) {
 	// extract image urls from article content
 	var downloadFunc = func(url string) {
 		// www.economist.com/sites/default/files/images/print-edition/20200725_WWC588.png
-		fileName := getFileNameFromURL(url)
-		if fileName == "" {
-			return
+		var fileName string
+		if imageFileName != "" {
+			fileName = imageFileName
+		} else {
+			fileName = getFileNameFromURL(url)
+			if fileName == "" {
+				return
+			}
 		}
+
 		f, err := os.Create(imageDir + "/" + fileName)
 		if err != nil {
 			fmt.Println("[create image file] failed to create img file : ", url, err)

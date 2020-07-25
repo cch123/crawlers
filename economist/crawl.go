@@ -29,7 +29,7 @@ func Crawl() {
 
 	// step 3.2 : download cover image
 	fmt.Println("[cover download]", coverURL)
-	downloadImagesToDir(date, coverURL)
+	downloadImagesToDir("cover.jpg", date, coverURL)
 
 	// step 3.3 : prepare dirs for sections
 	for _, sec := range sections {
@@ -56,9 +56,9 @@ func Crawl() {
 
 			// step 4.2 : download image
 			// lead image
-			downloadImagesToDir(getImageDir(date, sec.title), article.leadImageURL)
+			downloadImagesToDir("", getImageDir(date, sec.title), article.leadImageURL)
 			// body images
-			downloadImagesToDir(getImageDir(date, sec.title), article.imageURLs...)
+			downloadImagesToDir("", getImageDir(date, sec.title), article.imageURLs...)
 
 			// step 4.3 : create markdown file
 			f, err := os.Create(getMarkdownFilePath(date, sec.title, getFileNameFromURL(articleURL)))
