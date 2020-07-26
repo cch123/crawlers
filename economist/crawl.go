@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/araddon/dateparse"
 	"github.com/gocolly/colly"
 )
 
@@ -49,6 +50,45 @@ type edition struct {
 	coverURL string
 }
 
+// original date is Oct 18, 2020
+// we need to convert it
+func generateEditionListPage(year string, editionList []edition) {
+	// https://www.economist.com/weeklyedition/archive
+	var pageContent string
+	var tr = []string{}
+	for idx, e := range editionList {
+		t, _ := dateparse.ParseAny(e.date)
+		date := t.Format("2006-01-02")
+		tdContent := ""
+		tdContent += "<p><img src = './" + date + "/cover.jpg'/></p>"
+		tdContent += "<p>" + date + "</p>"
+		tdContent += fmt.Sprintf("<p><a href='./%v'>%v</a></p>", date, e.title)
+		tdContent = "<td>" + tdContent + "</td>"
+		tr = append(tr, tdContent)
+		if idx%4 == 3 || idx == len(editionList)-1 {
+			// generate tr for table
+			pageContent += "<tr>" + strings.Join(tr, "") + "</tr>"
+			tr = tr[:0]
+			continue
+		}
+	}
+
+	pageContent = fmt.Sprintf("# Economist %v\n", year) + "<table>" + pageContent + "</table>"
+
+	f, err := os.Create("readme.md")
+	if err != nil {
+		fmt.Println("[generate edition page]failed", err)
+		return
+	}
+	defer f.Close()
+
+	_, err = f.WriteString(pageContent)
+	if err != nil {
+		fmt.Println("[generate edition page]failed", err)
+		return
+	}
+}
+
 // CrawlByYear crawl economist by year
 func (c Crawler) CrawlByYear(year string) {
 	// get urlSuffix for this year
@@ -58,12 +98,14 @@ func (c Crawler) CrawlByYear(year string) {
 	co.OnHTML(".edition-teaser", func(elem *colly.HTMLElement) {
 		var e edition
 		e.coverURL = elem.ChildAttr("img", "src")
-		e.date = elem.ChildText(".edition-teaser__subheadline")
 		e.title = elem.ChildText(".edition-teaser__headline")
 		e.url = elem.ChildAttr(".headline-link", "href")
+		e.date = getFileNameFromURL(e.url)
+		// e.date = elem.ChildText(".edition-teaser__subheadline"), this date is not correct
 		editionList = append(editionList, e)
 	})
 	co.Visit(fmt.Sprintf("https://www.economist.com/weeklyedition/archive?year=%v", year))
+	generateEditionListPage(year, editionList)
 
 	for _, e := range editionList {
 		date := getFileNameFromURL(e.url)
