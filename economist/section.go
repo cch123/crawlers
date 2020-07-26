@@ -2,6 +2,7 @@ package economist
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gocolly/colly"
 )
@@ -22,7 +23,7 @@ func getSectionsAndCoverByURL(rootPath string) ([]section, string) {
 	sectionCollector.OnHTML(".layout-weekly-edition-section", func(e *colly.HTMLElement) {
 		title := e.ChildText(".ds-section-headline")
 		children := e.ChildAttrs("a", "href")
-		sections = append(sections, section{title: title, articleLinks: children})
+		sections = append(sections, section{title: strings.Trim(title, `'`), articleLinks: children})
 	})
 	sectionCollector.OnHTML(".weekly-edition-header__image", func(e *colly.HTMLElement) {
 		coverURL = e.ChildAttr("img", "src")
