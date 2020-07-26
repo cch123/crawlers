@@ -10,12 +10,26 @@ import (
 
 const economistBaseURL = "https://www.economist.com"
 
-// Crawl the economist
-func Crawl() {
+// CrawlByDay crawl by day
+func CrawlByDay(date string) {
+	urlSuffix, date := "/weeklyedition/"+date, date
+	crawl(urlSuffix, date)
+}
+
+// CrawlLatest crawl the latest
+func CrawlLatest() {
 	// step 1 : get latest weekly URL
 	urlSuffix, date := getLatestWeeklyEditionURL()
 	fmt.Println("[crawl] the latest edition is ", urlSuffix)
+	crawl(urlSuffix, date)
+}
 
+// CrawlByYear crawl economist by year
+func CrawlByYear(year string) {
+}
+
+// crawl the economist
+func crawl(urlSuffix, date string) {
 	// step 2 : get sections from weekly front page
 	var sections, coverURL = getSectionsAndCoverByURL(economistBaseURL + urlSuffix)
 

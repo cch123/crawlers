@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/araddon/dateparse"
 	"github.com/cch123/crawlers/economist"
 	"github.com/docopt/docopt-go"
 )
@@ -38,7 +39,19 @@ func main() {
 
 	switch opts.Magazine {
 	case "economist":
-		economist.Crawl()
+		switch {
+		case opts.ByDay:
+			t, err := dateparse.ParseAny(opts.Day)
+			if err != nil {
+				fmt.Println("[date parse] failed", err)
+				return
+			}
+			economist.CrawlByDay(t.Format("2006-01-02"))
+		case opts.ByYear:
+			economist.CrawlByYear(opts.Year)
+		default:
+			economist.CrawlLatest()
+		}
 	default:
 		fmt.Println("this magazine is not supported")
 	}
