@@ -12,14 +12,30 @@ import (
 
 const economistBaseURL = "https://www.economist.com"
 
+// Crawler is an economist crawler
+type Crawler struct {
+	sleepInterval time.Duration
+}
+
+// NewCrawler get an economist crawler
+func NewCrawler(sleepInterval int) Crawler {
+	// default, sleep 2s for each page
+	var c = Crawler{time.Second * 2}
+	if sleepInterval > 0 {
+		c.sleepInterval = c.sleepInterval * time.Second
+	}
+
+	return c
+}
+
 // CrawlByDay crawl by day
-func CrawlByDay(date string) {
+func (c Crawler) CrawlByDay(date string) {
 	urlSuffix, date := "/weeklyedition/"+date, date
 	crawl(urlSuffix, date)
 }
 
 // CrawlLatest crawl the latest
-func CrawlLatest() {
+func (c Crawler) CrawlLatest() {
 	// step 1 : get latest weekly URL
 	urlSuffix, date := getLatestWeeklyEditionURL()
 	fmt.Println("[crawl] the latest edition is ", urlSuffix)
@@ -34,12 +50,12 @@ type edition struct {
 }
 
 // CrawlByYear crawl economist by year
-func CrawlByYear(year string) {
+func (c Crawler) CrawlByYear(year string) {
 	// get urlSuffix for this year
 	// https://www.economist.com/weeklyedition/archive?year=2019
-	c := colly.NewCollector()
+	co := colly.NewCollector()
 	var editionList []edition
-	c.OnHTML(".edition-teaser", func(elem *colly.HTMLElement) {
+	co.OnHTML(".edition-teaser", func(elem *colly.HTMLElement) {
 		var e edition
 		e.coverURL = elem.ChildAttr("img", "src")
 		e.date = elem.ChildText(".edition-teaser__subheadline")
@@ -47,11 +63,11 @@ func CrawlByYear(year string) {
 		e.url = elem.ChildAttr(".headline-link", "href")
 		editionList = append(editionList, e)
 	})
-	c.Visit(fmt.Sprintf("https://www.economist.com/weeklyedition/archive?year=%v", year))
+	co.Visit(fmt.Sprintf("https://www.economist.com/weeklyedition/archive?year=%v", year))
 
 	for _, e := range editionList {
 		date := getFileNameFromURL(e.url)
-		CrawlByDay(date)
+		c.CrawlByDay(date)
 	}
 }
 

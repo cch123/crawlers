@@ -10,17 +10,18 @@ import (
 
 const usage = `Crawlers.
 Usage:
-	exe -d <date> <magazine>
-	exe -y <year> <magazine>
-	exe <magazine>
+	exe -s <seconds> -d <date> <magazine>
+	exe -s <seconds> -y <year> <magazine>
+	exe -s <seconds> <magazine>
 `
 
 type options struct {
-	Magazine string `docopt:"<magazine>"`
-	ByYear   bool   `docopt:"-y"`
-	Year     string `docopt:"<year>"`
-	ByDay    bool   `docopt:"-d"`
-	Day      string `docopt:"<date>"`
+	Magazine     string `docopt:"<magazine>"`
+	ByYear       bool   `docopt:"-y"`
+	Year         string `docopt:"<year>"`
+	ByDay        bool   `docopt:"-d"`
+	Day          string `docopt:"<date>"`
+	GrabInterval int    `docopt:"<seconds>"`
 }
 
 func main() {
@@ -39,6 +40,7 @@ func main() {
 
 	switch opts.Magazine {
 	case "economist":
+		cr := economist.NewCrawler(opts.GrabInterval)
 		switch {
 		case opts.ByDay:
 			t, err := dateparse.ParseAny(opts.Day)
@@ -46,11 +48,11 @@ func main() {
 				fmt.Println("[date parse] failed", err)
 				return
 			}
-			economist.CrawlByDay(t.Format("2006-01-02"))
+			cr.CrawlByDay(t.Format("2006-01-02"))
 		case opts.ByYear:
-			economist.CrawlByYear(opts.Year)
+			cr.CrawlByYear(opts.Year)
 		default:
-			economist.CrawlLatest()
+			cr.CrawlLatest()
 		}
 	default:
 		fmt.Println("this magazine is not supported")
