@@ -18,10 +18,10 @@ type Crawler struct {
 }
 
 // NewCrawler get an economist crawler
-func NewCrawler(sleepInterval int) Crawler {
+func NewCrawler(grabInterval int) Crawler {
 	// default, sleep 2s for each page
 	var c = Crawler{time.Second * 2}
-	if sleepInterval > 0 {
+	if grabInterval > 0 {
 		c.sleepInterval = c.sleepInterval * time.Second
 	}
 

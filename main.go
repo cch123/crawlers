@@ -10,9 +10,9 @@ import (
 
 const usage = `Crawlers.
 Usage:
-	exe -s <seconds> -d <date> <magazine>
-	exe -s <seconds> -y <year> <magazine>
-	exe -s <seconds> <magazine>
+	exe -d <date> <magazine> [--seconds=<value>]
+	exe -y <year> <magazine>
+	exe <magazine>
 `
 
 type options struct {
@@ -21,7 +21,7 @@ type options struct {
 	Year         string `docopt:"<year>"`
 	ByDay        bool   `docopt:"-d"`
 	Day          string `docopt:"<date>"`
-	GrabInterval int    `docopt:"<seconds>"`
+	GrabInterval int    `docopt:"--seconds"`
 }
 
 func main() {
