@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/gocolly/colly"
 )
 
 const economistBaseURL = "https://www.economist.com"
@@ -24,8 +26,33 @@ func CrawlLatest() {
 	crawl(urlSuffix, date)
 }
 
+type edition struct {
+	url      string
+	title    string
+	date     string
+	coverURL string
+}
+
 // CrawlByYear crawl economist by year
 func CrawlByYear(year string) {
+	// get urlSuffix for this year
+	// https://www.economist.com/weeklyedition/archive?year=2019
+	c := colly.NewCollector()
+	var editionList []edition
+	c.OnHTML(".edition-teaser", func(elem *colly.HTMLElement) {
+		var e edition
+		e.coverURL = elem.ChildAttr("img", "src")
+		e.date = elem.ChildText(".edition-teaser__subheadline")
+		e.title = elem.ChildText(".edition-teaser__headline")
+		e.url = elem.ChildAttr(".headline-link", "href")
+		editionList = append(editionList, e)
+	})
+	c.Visit(fmt.Sprintf("https://www.economist.com/weeklyedition/archive?year=%v", year))
+
+	for _, e := range editionList {
+		date := getFileNameFromURL(e.url)
+		CrawlByDay(date)
+	}
 }
 
 // crawl the economist
