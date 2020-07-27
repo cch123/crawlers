@@ -116,7 +116,7 @@ func (c Crawler) CrawlByYear(year string) {
 // crawl the economist
 func crawl(urlSuffix, date string) {
 	// step 2 : get sections from weekly front page
-	var sections, coverURL = getSectionsAndCoverByURL(economistBaseURL + urlSuffix)
+	var sections, coverURL, pageTitle = getSectionsAndCoverByURL(economistBaseURL + urlSuffix)
 
 	// step 3 : prepare markdown && images file directories
 	err := os.RemoveAll(date)
@@ -130,7 +130,30 @@ func crawl(urlSuffix, date string) {
 	fmt.Println("[cover download]", coverURL)
 	downloadImagesToDir("cover.jpg", date, coverURL)
 
-	// step 3.3 : prepare dirs for sections
+	// step 3.3 : create section list page
+	fmt.Println("[create section list page]")
+	f, err := os.Create(date + "/readme.md")
+	if err != nil {
+		fmt.Println("[create section list] failed", err)
+		return
+	}
+	defer f.Close()
+
+	sectionListPageContent := "## " + pageTitle + "\n"
+	sectionListPageContent += "![](./cover.jpg)\n"
+	for _, sec := range sections {
+		sectionListPageContent += "### " + sec.title + "\n"
+		for _, articleURL := range sec.articleLinks {
+			line := fmt.Sprintf("[%v](%v)\n", getFileNameFromURL(articleURL), "./"+sec.title+"/"+getFileNameFromURL(articleURL)+".md")
+			line = strings.ReplaceAll(line, " ", "%20")
+			sectionListPageContent += "#### " + line
+		}
+	}
+
+	f.WriteString(sectionListPageContent)
+	fmt.Println("[create section list] done")
+
+	// step 3.4 : prepare dirs for sections
 	for _, sec := range sections {
 		// dir for markdown files
 		err = os.MkdirAll(getMarkdownFileDir(date, sec.title), 0755)

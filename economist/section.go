@@ -13,13 +13,12 @@ type section struct {
 }
 
 // rootPath like : www.economist.com/weeklyedition/2020-07-20
-func getSectionsAndCoverByURL(rootPath string) ([]section, string) {
-	var (
-		sections []section
-		coverURL string
-	)
+func getSectionsAndCoverByURL(rootPath string) (sections []section, coverURL string, title string) {
 
 	sectionCollector := colly.NewCollector()
+	sectionCollector.OnHTML(".weekly-edition-header__headline", func(e *colly.HTMLElement) {
+		title = e.Text
+	})
 	sectionCollector.OnHTML(".layout-weekly-edition-section", func(e *colly.HTMLElement) {
 		title := e.ChildText(".ds-section-headline")
 		children := e.ChildAttrs("a", "href")
@@ -34,5 +33,5 @@ func getSectionsAndCoverByURL(rootPath string) ([]section, string) {
 		fmt.Println(err)
 	}
 
-	return sections, coverURL
+	return sections, coverURL, title
 }
