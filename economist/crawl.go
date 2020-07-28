@@ -32,8 +32,10 @@ func NewCrawler(grabInterval int) Crawler {
 
 // CrawlByDay crawl by day
 func (c Crawler) CrawlByDay(date string) {
-	urlSuffix := "/weeklyedition/"+date
+	urlSuffix := "/weeklyedition/" + date
 	crawl(urlSuffix, date)
+	t, _ := dateparse.ParseAny(date)
+	c.refreshEditionPage(fmt.Sprint(t.Year()))
 }
 
 // CrawlLatest crawl the latest
@@ -91,7 +93,15 @@ func generateEditionListPage(year string, editionList []edition) {
 
 // CrawlByYear crawl economist by year
 func (c Crawler) CrawlByYear(year string) {
-	// get urlSuffix for this year
+	editionList := c.refreshEditionPage(year)
+
+	for _, e := range editionList {
+		date := getLastSegmentFromURL(e.url)
+		c.CrawlByDay(date)
+	}
+}
+
+func (c Crawler) refreshEditionPage(year string) []edition {
 	// https://www.economist.com/weeklyedition/archive?year=2019
 	co := colly.NewCollector()
 	var editionList []edition
@@ -106,11 +116,7 @@ func (c Crawler) CrawlByYear(year string) {
 	})
 	co.Visit(fmt.Sprintf("https://www.economist.com/weeklyedition/archive?year=%v", year))
 	generateEditionListPage(year, editionList)
-
-	for _, e := range editionList {
-		date := getLastSegmentFromURL(e.url)
-		c.CrawlByDay(date)
-	}
+	return editionList
 }
 
 // crawl the economist
