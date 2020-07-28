@@ -1,3 +1,6 @@
 # TODO
 
-* generate weekly section list page
+* financial times
+* nytimes
+* wsj
+
