@@ -24,7 +24,7 @@ func NewCrawler(grabInterval int) Crawler {
 	// default, sleep 2s for each page
 	var c = Crawler{time.Second * 2}
 	if grabInterval > 0 {
-		c.sleepInterval = c.sleepInterval * time.Second
+		c.sleepInterval = time.Duration(grabInterval) * time.Second
 	}
 
 	return c
@@ -33,7 +33,7 @@ func NewCrawler(grabInterval int) Crawler {
 // CrawlByDay crawl by day
 func (c Crawler) CrawlByDay(date string) {
 	urlSuffix := "/weeklyedition/" + date
-	crawl(urlSuffix, date)
+	c.crawl(urlSuffix, date)
 	t, _ := dateparse.ParseAny(date)
 	c.refreshEditionPage(fmt.Sprint(t.Year()))
 }
@@ -120,7 +120,7 @@ func (c Crawler) refreshEditionPage(year string) []edition {
 }
 
 // crawl the economist
-func crawl(urlSuffix, date string) {
+func (c Crawler) crawl(urlSuffix, date string) {
 	// step 2 : get sections from weekly front page
 	var sections, coverURL, pageTitle = getSectionsAndCoverByURL(economistBaseURL + urlSuffix)
 
@@ -157,6 +157,9 @@ func crawl(urlSuffix, date string) {
 	// step 4 : download articles && images
 	for _, sec := range sections {
 		for _, articleURL := range sec.articleLinks {
+			if c.sleepInterval > 0 {
+				time.Sleep(c.sleepInterval)
+			}
 			// step 4.1 : download article
 			// economist.com + /2020-07-05/{title}
 			fullURL := economistBaseURL + articleURL
