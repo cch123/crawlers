@@ -11,7 +11,7 @@ import (
 const usage = `Crawlers.
 Usage:
 	exe -d <date> <magazine> [--seconds=<value>]
-	exe -y <year> <magazine>
+	exe -y <year> <magazine> [--seconds=<value>]
 	exe <magazine>
 `
 
