@@ -15,7 +15,7 @@ func downloadImagesToDir(imageFileName, imageDir string, imageURLs ...string) {
 		if imageFileName != "" {
 			fileName = imageFileName
 		} else {
-			fileName = getFileNameFromURL(url)
+			fileName = getLastSegmentFromURL(url)
 			if fileName == "" {
 				return
 			}

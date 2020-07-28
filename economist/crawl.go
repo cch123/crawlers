@@ -32,16 +32,15 @@ func NewCrawler(grabInterval int) Crawler {
 
 // CrawlByDay crawl by day
 func (c Crawler) CrawlByDay(date string) {
-	urlSuffix, date := "/weeklyedition/"+date, date
+	urlSuffix := "/weeklyedition/"+date
 	crawl(urlSuffix, date)
 }
 
 // CrawlLatest crawl the latest
 func (c Crawler) CrawlLatest() {
 	// step 1 : get latest weekly URL
-	urlSuffix, date := getLatestWeeklyEditionURL()
-	fmt.Println("[crawl] the latest edition is ", urlSuffix)
-	crawl(urlSuffix, date)
+	date := getLatestWeeklyEditionURL()
+	c.CrawlByDay(date)
 }
 
 type edition struct {
@@ -101,7 +100,7 @@ func (c Crawler) CrawlByYear(year string) {
 		e.coverURL = elem.ChildAttr("img", "src")
 		e.title = elem.ChildText(".edition-teaser__headline")
 		e.url = elem.ChildAttr(".headline-link", "href")
-		e.date = getFileNameFromURL(e.url)
+		e.date = getLastSegmentFromURL(e.url)
 		// e.date = elem.ChildText(".edition-teaser__subheadline"), this date is not correct
 		editionList = append(editionList, e)
 	})
@@ -109,7 +108,7 @@ func (c Crawler) CrawlByYear(year string) {
 	generateEditionListPage(year, editionList)
 
 	for _, e := range editionList {
-		date := getFileNameFromURL(e.url)
+		date := getLastSegmentFromURL(e.url)
 		c.CrawlByDay(date)
 	}
 }
@@ -132,27 +131,7 @@ func crawl(urlSuffix, date string) {
 	downloadImagesToDir("cover.jpg", date, coverURL)
 
 	// step 3.3 : create section list page
-	fmt.Println("[create section list page]")
-	f, err := os.Create(date + "/readme.md")
-	if err != nil {
-		fmt.Println("[create section list] failed", err)
-		return
-	}
-	defer f.Close()
-
-	sectionListPageContent := "## " + pageTitle + "\n"
-	sectionListPageContent += "![](./cover.jpg)\n"
-	for _, sec := range sections {
-		sectionListPageContent += "### " + sec.title + "\n"
-		for _, articleURL := range sec.articleLinks {
-			line := fmt.Sprintf("[%v](%v)\n", getTileFromDashed(getFileNameFromURL(articleURL)), strings.ReplaceAll("./"+sec.title+"/"+getFileNameFromURL(articleURL)+".md", " ", "%20"))
-			// line = strings.ReplaceAll(line, " ", "%20")
-			sectionListPageContent += "#### " + line
-		}
-	}
-
-	f.WriteString(sectionListPageContent)
-	fmt.Println("[create section list] done")
+	createSectionArticleListPage(date, pageTitle, sections)
 
 	// step 3.4 : prepare dirs for sections
 	for _, sec := range sections {
@@ -184,7 +163,7 @@ func crawl(urlSuffix, date string) {
 			downloadImagesToDir("", getImageDir(date, sec.title), article.imageURLs...)
 
 			// step 4.3 : create markdown file
-			f, err := os.Create(getMarkdownFilePath(date, sec.title, getFileNameFromURL(articleURL)))
+			f, err := os.Create(getMarkdownFilePath(date, sec.title, getLastSegmentFromURL(articleURL)))
 			if err != nil {
 				fmt.Println(err)
 				continue
@@ -201,6 +180,30 @@ func crawl(urlSuffix, date string) {
 	}
 }
 
+func createSectionArticleListPage(date string, pageTitle string, sections []section) {
+	fmt.Println("[create section list page]")
+	f, err := os.Create(date + "/readme.md")
+	if err != nil {
+		fmt.Println("[create section list] failed", err)
+		return
+	}
+	defer f.Close()
+
+	sectionListPageContent := "## " + pageTitle + "\n"
+	sectionListPageContent += "![](./cover.jpg)\n"
+	for _, sec := range sections {
+		sectionListPageContent += "### " + sec.title + "\n"
+		for _, articleURL := range sec.articleLinks {
+			line := fmt.Sprintf("[%v](%v)\n", getTileFromDashed(getLastSegmentFromURL(articleURL)), strings.ReplaceAll("./"+sec.title+"/"+getLastSegmentFromURL(articleURL)+".md", " ", "%20"))
+			// line = strings.ReplaceAll(line, " ", "%20")
+			sectionListPageContent += "#### " + line
+		}
+	}
+
+	f.WriteString(sectionListPageContent)
+	fmt.Println("[create section list] done")
+}
+
 func getTileFromDashed(str string) string {
 	str = strings.ReplaceAll(str, "-", " ")
 	result := []rune{unicode.ToUpper(rune(str[0]))}
@@ -208,7 +211,7 @@ func getTileFromDashed(str string) string {
 	return string(result)
 }
 
-func getFileNameFromURL(url string) string {
+func getLastSegmentFromURL(url string) string {
 	var arr = strings.Split(url, "/")
 	var lastIdx = len(arr) - 1
 	return arr[lastIdx]
@@ -226,7 +229,7 @@ func getImageDir(date, sectionTitle string) string {
 	return date + "/" + sectionTitle + "/images"
 }
 
-func getLatestWeeklyEditionURL() (url string, date string) {
+func getLatestWeeklyEditionURL() (date string) {
 	client := http.Client{
 		Timeout: time.Second * 5,
 		// just tell me the redirect target
@@ -242,8 +245,5 @@ func getLatestWeeklyEditionURL() (url string, date string) {
 	}
 
 	latestURL := resp.Header.Get("Location")
-	arr := strings.Split(latestURL, "/")
-	latestDate := arr[len(arr)-1]
-
-	return latestURL, latestDate
+	return getLastSegmentFromURL(latestURL)
 }

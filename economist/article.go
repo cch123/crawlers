@@ -62,7 +62,7 @@ func getArticleByURL(url string) article {
 				imageURLs = append(imageURLs, imageURL)
 
 				// insert this image as a img element to markdown paragraph
-				imageContent := fmt.Sprintf("![](./images/%v)", getFileNameFromURL(imageURL))
+				imageContent := fmt.Sprintf("![](./images/%v)", getLastSegmentFromURL(imageURL))
 
 				paragraphs = append(paragraphs, imageContent)
 			} else {
@@ -103,7 +103,7 @@ func getArticleByURL(url string) article {
 func (a article) generateMarkdown() string {
 	var content string
 	if a.leadImageURL != "" {
-		content += fmt.Sprintf("![](./images/%v)", getFileNameFromURL(a.leadImageURL))
+		content += fmt.Sprintf("![](./images/%v)", getLastSegmentFromURL(a.leadImageURL))
 		content += "\n\n"
 	}
 
