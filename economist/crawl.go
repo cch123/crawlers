@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/araddon/dateparse"
 	"github.com/gocolly/colly"
@@ -144,8 +145,8 @@ func crawl(urlSuffix, date string) {
 	for _, sec := range sections {
 		sectionListPageContent += "### " + sec.title + "\n"
 		for _, articleURL := range sec.articleLinks {
-			line := fmt.Sprintf("[%v](%v)\n", getFileNameFromURL(articleURL), "./"+sec.title+"/"+getFileNameFromURL(articleURL)+".md")
-			line = strings.ReplaceAll(line, " ", "%20")
+			line := fmt.Sprintf("[%v](%v)\n", getTileFromDashed(getFileNameFromURL(articleURL)), strings.ReplaceAll("./"+sec.title+"/"+getFileNameFromURL(articleURL)+".md", " ", "%20"))
+			// line = strings.ReplaceAll(line, " ", "%20")
 			sectionListPageContent += "#### " + line
 		}
 	}
@@ -198,6 +199,13 @@ func crawl(urlSuffix, date string) {
 			}
 		}
 	}
+}
+
+func getTileFromDashed(str string) string {
+	str = strings.ReplaceAll(str, "-", " ")
+	result := []rune{unicode.ToUpper(rune(str[0]))}
+	result = append(result, []rune(str[1:])...)
+	return string(result)
 }
 
 func getFileNameFromURL(url string) string {

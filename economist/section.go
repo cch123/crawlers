@@ -7,9 +7,15 @@ import (
 	"github.com/gocolly/colly"
 )
 
+type articleEntry struct {
+	link string
+	name string
+}
+
 type section struct {
 	title        string
 	articleLinks []string
+	articleEntries []articleEntry
 }
 
 // rootPath like : www.economist.com/weeklyedition/2020-07-20
