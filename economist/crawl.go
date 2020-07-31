@@ -157,9 +157,7 @@ func (c Crawler) crawl(urlSuffix, date string) {
 	// step 4 : download articles && images
 	for _, sec := range sections {
 		for _, articleURL := range sec.articleLinks {
-			if c.sleepInterval > 0 {
-				time.Sleep(c.sleepInterval)
-			}
+			time.Sleep(c.sleepInterval)
 			// step 4.1 : download article
 			// economist.com + /2020-07-05/{title}
 			fullURL := economistBaseURL + articleURL
