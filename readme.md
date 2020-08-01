@@ -3,4 +3,4 @@
 * financial times
 * nytimes
 * wsj
-
+* thetimes

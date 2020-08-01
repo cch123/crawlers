@@ -26,7 +26,6 @@ type article struct {
 }
 
 func getArticleByURL(url string) article {
-	url = "https://www.economist.com/graphic-detail/2020/08/01/twitters-algorithm-does-not-seem-to-silence-conservatives"
 	articleCollector := colly.NewCollector()
 	var (
 		// header
