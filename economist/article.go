@@ -20,6 +20,9 @@ type article struct {
 
 	// paragraph images
 	imageURLs []string
+
+	// full url
+	fullURL string
 }
 
 func getArticleByURL(url string) article {
@@ -97,6 +100,8 @@ func getArticleByURL(url string) article {
 
 		// images
 		imageURLs: imageURLs,
+
+		fullURL: url,
 	}
 }
 
@@ -126,6 +131,8 @@ func (a article) generateMarkdown() string {
 	if len(a.paragraphs) > 0 {
 		content += strings.Join(a.paragraphs, "\n\n")
 	}
+
+	content += "\n\n## URL\n\n" + a.fullURL + "\n"
 
 	return content
 }
