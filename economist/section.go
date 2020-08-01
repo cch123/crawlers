@@ -13,8 +13,8 @@ type articleEntry struct {
 }
 
 type section struct {
-	title        string
-	articleLinks []string
+	title          string
+	articleLinks   []string
 	articleEntries []articleEntry
 }
 
