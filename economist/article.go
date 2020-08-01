@@ -26,6 +26,7 @@ type article struct {
 }
 
 func getArticleByURL(url string) article {
+	url = "https://www.economist.com/graphic-detail/2020/08/01/twitters-algorithm-does-not-seem-to-silence-conservatives"
 	articleCollector := colly.NewCollector()
 	var (
 		// header
@@ -55,8 +56,9 @@ func getArticleByURL(url string) article {
 	// ds-layout-grid ds-layout-grid--edged layout-article-body
 	articleCollector.OnHTML(".layout-article-body", func(e *colly.HTMLElement) {
 		meta = e.ChildText(".layout-article-meta")
-		e.ForEach(".article__body-text, img", func(idx int, internal *colly.HTMLElement) {
-			if internal.Name == "img" {
+		e.ForEach(".article__body-text, img, figure", func(idx int, internal *colly.HTMLElement) {
+			switch internal.Name {
+			case "img":
 				// xxxx.jpg 2048
 				imageRawURL := internal.Attr("src")
 				arr := strings.Split(imageRawURL, " ")
@@ -68,14 +70,16 @@ func getArticleByURL(url string) article {
 				imageContent := fmt.Sprintf("![](./images/%v)", getLastSegmentFromURL(imageURL))
 
 				paragraphs = append(paragraphs, imageContent)
-			} else {
+			case "figure":
+				figureURL := internal.ChildAttr("iframe", "src")
+				paragraphs = append(paragraphs, figureURL)
+			default:
 				// convert links to markdown format
 				internal.ForEach("a", func(_ int, e *colly.HTMLElement) {
 					e.DOM.SetText(fmt.Sprintf("[%v](https://www.economist.com/%v)", e.Text, e.Attr("href")))
 				})
 				paragraphs = append(paragraphs, internal.DOM.Text())
 			}
-
 		})
 	})
 
