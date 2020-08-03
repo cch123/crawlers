@@ -4,3 +4,4 @@
 * nytimes
 * wsj
 * thetimes
+* reuter
